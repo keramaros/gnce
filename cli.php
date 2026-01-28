@@ -1,6 +1,6 @@
 <?php
-require "../config.php";
-require "../OnceApiClient.php";
+require "./config.php";
+require "./OnceApiClient.php";
 
 try {
     $client = new OnceApiClient(ONCE_API_CLIENT_ID, ONCE_API_SECRET);
@@ -12,6 +12,9 @@ try {
     foreach ($sims as $sim) {
         $iccid = $sim['iccid'] ?? 'N/A';
         $status = $sim['status'] ?? 'N/A';
+        $label = $sim['label'] ?? 'No label';
+
+        if ($status !== "Enabled") continue;
 
         // Try to get quota if not in the sim object
         $remainingMb = $sim['dataVolumeRemainingMb'] ?? $sim['data']['remainingMb'] ?? null;
@@ -23,6 +26,7 @@ try {
             $remainingMb = $quota['volume'] ?? $quota['remaining_volume'] ?? $quota['remainingVolume'] ?? 'Unknown';
         }
 
+        echo "Label: {$label}\n";
         echo "ICCID: {$iccid}\n";
         echo "Status: {$status}\n";
         echo "Remaining Data (MB): {$remainingMb}\n";
