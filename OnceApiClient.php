@@ -3,14 +3,13 @@
 class OnceApiClient
 {
     private string $tokenUrl = 'https://api.1nce.com/oauth/token';
-    private string $simsUrl;
+    private string $simsUrl = 'https://api.1nce.com/management-api/v1/sims';
     private string $clientId;
     private string $clientSecret;
     private ?string $accessToken = null;
 
-    public function __construct(string $apiUrl, string $clientId, string $clientSecret)
+    public function __construct(string $clientId, string $clientSecret)
     {
-        $this->simsUrl = $apiUrl;
         $this->clientId = $clientId;
         $this->clientSecret = $clientSecret;
     }

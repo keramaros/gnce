@@ -3,7 +3,7 @@ require "../config.php";
 require "../OnceApiClient.php";
 
 try {
-    $client = new OnceApiClient(API_URL, API_CLIENT_ID, API_SECRET);
+    $client = new OnceApiClient(ONCE_API_CLIENT_ID, ONCE_API_SECRET);
     $sims = $client->getSims();
 
     echo "Found " . count($sims) . " SIMs.\n";
