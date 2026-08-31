@@ -17,7 +17,7 @@ class GNCE_Sync
         $this->api = new GNCE_API_Client($client_id, $secret);
 
         add_action('gnce_sync_cron', [$this, 'gnce_trigger_sync_all']);
-        add_action('gnce_sync_batch', [$this, 'gnce_process_batch']);
+	    add_action( 'gnce_sync_batch', [ $this, 'gnce_process_batch' ], 10, 2 );
         add_action('gnce_sync_single', [$this, 'gnce_sync_single_row']);
         add_action('gnce_verify_quota_after_renewal', [$this, 'gnce_verify_quota_after_renewal_callback'], 10, 2);
         add_filter('cron_schedules', [$this, 'gnce_add_cron_intervals']);
@@ -98,7 +98,7 @@ class GNCE_Sync
         }
     }
 
-    public function gnce_process_batch($offset, $limit)
+	public function gnce_process_batch( $offset = 0, $limit = 10 )
     {
 	    gnce_log( 'GNCE_Sync::gnce_process_batch. Offset:', $offset, 'Limit:', $limit );
         $rows = $this->db->get_iccids([
