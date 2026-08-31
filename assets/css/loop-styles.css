@@ -1,0 +1,36 @@
+/* Loop and search result styles for 1NCE management */
+.gnce-results-list {
+    text-align: left;
+    width: 100%;
+    background: #ffffff;
+    padding: 15px;
+    border-radius: 6px;
+    border: 1px solid #e2e8f0;
+    margin-top: 10px;
+}
+
+.gnce-result-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.gnce-result-item:last-child {
+    border-bottom: none;
+}
+
+.gnce-result-label {
+    font-weight: 600;
+    color: #475569;
+}
+
+.gnce-error {
+    color: #d63638;
+    background: #fef2f2;
+    padding: 10px 15px;
+    border-radius: 6px;
+    border: 1px solid #fee2e2;
+    margin-top: 10px;
+    width: 100%;
+}
