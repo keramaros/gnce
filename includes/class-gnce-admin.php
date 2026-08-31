@@ -105,6 +105,7 @@ class GNCE_Admin
         register_setting('gnce_settings_group', 'gnce_email_template_body', 'wp_kses_post');
         register_setting('gnce_settings_group', 'gnce_sms_template', 'sanitize_textarea_field');
         register_setting('gnce_settings_group', 'gnce_quota_verification_interval', 'sanitize_text_field');
+        register_setting( 'gnce_settings_group', 'gnce_enable_logging', 'sanitize_text_field' );
 
         add_settings_section('gnce_api_section', __('API Settings', 'gnce-1nce-products'), [$this, 'gnce_api_section_callback'], 'gnce-settings');
         add_settings_field('gnce_once_api_client_id', __('Client ID', 'gnce-1nce-products'), [$this, 'gnce_render_text_field'], 'gnce-settings', 'gnce_api_section', ['label_for' => 'gnce_once_api_client_id']);
@@ -115,6 +116,7 @@ class GNCE_Admin
         add_settings_field('gnce_api_sync_interval', __('API Sync Interval', 'gnce-1nce-products'), [$this, 'gnce_render_sync_interval_field'], 'gnce-settings', 'gnce_sync_section', ['label_for' => 'gnce_api_sync_interval']);
         add_settings_field('gnce_notification_frequency', __('Notification Frequency', 'gnce-1nce-products'), [$this, 'gnce_render_notification_frequency_field'], 'gnce-settings', 'gnce_sync_section', ['label_for' => 'gnce_notification_frequency']);
         add_settings_field('gnce_quota_verification_interval', __('Quota Verification Interval', 'gnce-1nce-products'), [$this, 'gnce_render_quota_verification_field'], 'gnce-settings', 'gnce_sync_section', ['label_for' => 'gnce_quota_verification_interval']);
+        add_settings_field( 'gnce_enable_logging', __( 'Enable Debug Logging', 'gnce-1nce-products' ), [ $this, 'gnce_render_checkbox_field' ], 'gnce-settings', 'gnce_sync_section', [ 'label_for' => 'gnce_enable_logging' ] );
 
         add_settings_section('gnce_templates_section', __('Templates', 'gnce-1nce-products'), [$this, 'gnce_templates_section_callback'], 'gnce-settings');
         add_settings_field('gnce_email_template_subject', __('Email Subject', 'gnce-1nce-products'), [$this, 'gnce_render_text_field'], 'gnce-settings', 'gnce_templates_section', ['label_for' => 'gnce_email_template_subject']);
@@ -227,6 +229,12 @@ class GNCE_Admin
         }
         echo '</select>';
         echo '<p class="description">' . __('Verification delay after a successful renewal order to confirm the new quota.', 'gnce-1nce-products') . '</p>';
+    }
+
+    public function gnce_render_checkbox_field( $args ) {
+        $value = get_option( $args['label_for'], '0' );
+        echo '<label><input type="checkbox" id="' . esc_attr( $args['label_for'] ) . '" name="' . esc_attr( $args['label_for'] ) . '" value="1" ' . checked( '1', $value, false ) . '> ' . __( 'Enable writing debug events to log file.', 'gnce-1nce-products' ) . '</label> ';
+        echo '<a href="' . esc_url( GNCE_URL . 'gnce_debug.log' ) . '" target="_blank">' . __( 'gnce_debug.log', 'gnce-1nce-products' ) . '</a>';
     }
 
     public function gnce_api_section_callback()
@@ -574,7 +582,6 @@ class GNCE_Admin
                 <?php wp_nonce_field('gnce_manual_sync_all_nonce'); ?>
                 <?php submit_button(__('Trigger Manual Sync for All', 'gnce-1nce-products'), 'secondary', 'gnce_manual_sync_all'); ?>
             </form>
-            <p>Review plugin's log: <a href="<?php echo esc_url( GNCE_URL . 'gnce_debug.log' ); ?>" target="_blank"><?php _e( 'gnce_debug.log', 'gnce-1nce-products' ); ?></a></p>
 
             <hr>
             <h2 style="color: #d63638;"><?php _e('Danger Zone', 'gnce-1nce-products'); ?></h2>

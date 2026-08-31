@@ -106,6 +106,10 @@ function gnce_redirect_on_activation($plugin)
  * @param mixed ...$args
  */
 function gnce_log( ...$args ) {
+	if ( ! get_option( 'gnce_enable_logging', '0' ) ) {
+		return;
+	}
+
 	$formatted = [];
 	foreach ( $args as $arg ) {
 		if ( is_null( $arg ) ) {
