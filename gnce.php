@@ -99,3 +99,30 @@ function gnce_redirect_on_activation($plugin)
         exit(wp_safe_redirect(admin_url('admin.php?page=gnce-settings')));
     }
 }
+
+/**
+ * Append a debug message to gnce_debug.log
+ *
+ * @param mixed ...$args
+ */
+function gnce_log( ...$args ) {
+	$formatted = [];
+	foreach ( $args as $arg ) {
+		if ( is_null( $arg ) ) {
+			$formatted[] = 'null';
+		} elseif ( is_bool( $arg ) ) {
+			$formatted[] = $arg ? 'true' : 'false';
+		} elseif ( is_scalar( $arg ) ) {
+			$formatted[] = (string) $arg;
+		} elseif ( is_array( $arg ) || is_object( $arg ) ) {
+			$formatted[] = json_encode( $arg );
+		} else {
+			$formatted[] = (string) $arg;
+		}
+	}
+	$message   = implode( ' ', $formatted );
+	$timestamp = function_exists( 'current_time' ) ? current_time( 'mysql' ) : date( 'Y-m-d H:i:s' );
+	$log_entry = "[$timestamp] $message" . PHP_EOL;
+	$log_file  = defined( 'GNCE_PATH' ) ? GNCE_PATH . 'gnce_debug.log' : __DIR__ . '/gnce_debug.log';
+	file_put_contents( $log_file, $log_entry, FILE_APPEND );
+}

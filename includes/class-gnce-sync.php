@@ -49,6 +49,7 @@ class GNCE_Sync
     public function gnce_setup_cron()
     {
         $interval = get_option('gnce_api_sync_interval', 'hourly');
+	    gnce_log( 'GNCE_Sync::gnce_setup_cron. Interval:', $interval );
 
         if ($interval === 'never') {
             wp_clear_scheduled_hook('gnce_sync_cron');
@@ -63,6 +64,7 @@ class GNCE_Sync
 
     public function gnce_clear_cron()
     {
+	    gnce_log( 'GNCE_Sync::gnce_clear_cron.' );
         wp_clear_scheduled_hook('gnce_sync_cron');
     }
 
@@ -70,6 +72,7 @@ class GNCE_Sync
     {
         wp_clear_scheduled_hook('gnce_sync_cron');
         $interval = get_option('gnce_api_sync_interval', 'hourly');
+	    gnce_log( 'GNCE_Sync::gnce_reschedule_cron. New Interval:', $interval );
 
         if ($interval === 'never') {
             return;
@@ -79,8 +82,14 @@ class GNCE_Sync
         wp_schedule_event(time() + 60, $interval, 'gnce_sync_cron');
     }
 
-    public function gnce_trigger_sync_all()
+	public function gnce_trigger_sync_all( $manual = false )
     {
+	    if ( $manual ) {
+		    gnce_log( 'GNCE_Sync::gnce_trigger_sync_all. Manual' );
+	    } else {
+		    $interval = get_option( 'gnce_api_sync_interval', 'hourly' );
+		    gnce_log( 'GNCE_Sync::gnce_trigger_sync_all. Recurrence:', $interval );
+	    }
         update_option('gnce_last_sync_run', current_time('mysql'));
         $total = $this->db->count_iccids();
         $batch_size = 10;
@@ -91,6 +100,7 @@ class GNCE_Sync
 
     public function gnce_process_batch($offset, $limit)
     {
+	    gnce_log( 'GNCE_Sync::gnce_process_batch. Offset:', $offset, 'Limit:', $limit );
         $rows = $this->db->get_iccids([
             'number' => $limit,
             'offset' => $offset
@@ -103,6 +113,7 @@ class GNCE_Sync
 
     public function gnce_sync_single_row($id)
     {
+	    gnce_log( 'GNCE_Sync::gnce_sync_single_row for ID:', $id );
         $row = $this->db->get_iccid($id);
         if (!$row) return false;
 
@@ -132,6 +143,7 @@ class GNCE_Sync
 
     public function gnce_verify_quota_after_renewal_callback($order_id, $iccid)
     {
+	    gnce_log( 'GNCE_Sync::gnce_verify_quota_after_renewal_callback. Order ID:', $order_id, 'ICCID:', $iccid );
         $order = wc_get_order($order_id);
         if (!$order) {
             return;

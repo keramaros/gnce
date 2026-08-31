@@ -32,6 +32,7 @@ class GNCE_Admin
 
     public function gnce_after_sync_interval_update()
     {
+        gnce_log( 'GNCE_Admin::gnce_after_sync_interval_update triggered.' );
         $sync = new GNCE_Sync();
         $sync->gnce_reschedule_cron();
     }
@@ -504,7 +505,7 @@ class GNCE_Admin
         if (isset($_POST['gnce_manual_sync_all'])) {
             check_admin_referer('gnce_manual_sync_all_nonce');
             $sync = new GNCE_Sync();
-            $sync->gnce_trigger_sync_all();
+            $sync->gnce_trigger_sync_all( true );
             echo '<div class="updated"><p>' . __('Sync process triggered.', 'gnce-1nce-products') . '</p></div>';
         }
 
@@ -573,6 +574,7 @@ class GNCE_Admin
                 <?php wp_nonce_field('gnce_manual_sync_all_nonce'); ?>
                 <?php submit_button(__('Trigger Manual Sync for All', 'gnce-1nce-products'), 'secondary', 'gnce_manual_sync_all'); ?>
             </form>
+            <p>Review plugin's log: <a href="<?php echo esc_url( GNCE_URL . 'gnce_debug.log' ); ?>" target="_blank"><?php _e( 'gnce_debug.log', 'gnce-1nce-products' ); ?></a></p>
 
             <hr>
             <h2 style="color: #d63638;"><?php _e('Danger Zone', 'gnce-1nce-products'); ?></h2>
@@ -633,5 +635,11 @@ class GNCE_Admin
         // Clear cron
         $sync = new GNCE_Sync();
         $sync->gnce_clear_cron();
+
+        // Clear log file
+        $log_file = defined( 'GNCE_PATH' ) ? GNCE_PATH . 'gnce_debug.log' : dirname( __DIR__ ) . '/gnce_debug.log';
+        if ( file_exists( $log_file ) ) {
+            file_put_contents( $log_file, '' );
+        }
     }
 }
