@@ -100,6 +100,7 @@ class GNCE_Admin
         register_setting('gnce_settings_group', 'gnce_once_api_secret', 'sanitize_text_field');
         register_setting('gnce_settings_group', 'gnce_once_api_payment_method', 'sanitize_text_field');
         register_setting('gnce_settings_group', 'gnce_notification_frequency', 'sanitize_text_field');
+        register_setting( 'gnce_settings_group', 'gnce_notification_limit', 'absint' );
         register_setting('gnce_settings_group', 'gnce_api_sync_interval', 'sanitize_text_field');
         register_setting('gnce_settings_group', 'gnce_email_template_subject', 'sanitize_text_field');
         register_setting('gnce_settings_group', 'gnce_email_template_body', 'wp_kses_post');
@@ -115,6 +116,7 @@ class GNCE_Admin
         add_settings_section('gnce_sync_section', __('Sync & Notifications', 'gnce-1nce-products'), [$this, 'gnce_sync_section_callback'], 'gnce-settings');
         add_settings_field('gnce_api_sync_interval', __('API Sync Interval', 'gnce-1nce-products'), [$this, 'gnce_render_sync_interval_field'], 'gnce-settings', 'gnce_sync_section', ['label_for' => 'gnce_api_sync_interval']);
         add_settings_field('gnce_notification_frequency', __('Notification Frequency', 'gnce-1nce-products'), [$this, 'gnce_render_notification_frequency_field'], 'gnce-settings', 'gnce_sync_section', ['label_for' => 'gnce_notification_frequency']);
+        add_settings_field( 'gnce_notification_limit', __( 'Notification Limit', 'gnce-1nce-products' ), [ $this, 'gnce_render_notification_limit_field' ], 'gnce-settings', 'gnce_sync_section', [ 'label_for' => 'gnce_notification_limit' ] );
         add_settings_field('gnce_quota_verification_interval', __('Quota Verification Interval', 'gnce-1nce-products'), [$this, 'gnce_render_quota_verification_field'], 'gnce-settings', 'gnce_sync_section', ['label_for' => 'gnce_quota_verification_interval']);
         add_settings_field( 'gnce_enable_logging', __( 'Enable Debug Logging', 'gnce-1nce-products' ), [ $this, 'gnce_render_checkbox_field' ], 'gnce-settings', 'gnce_sync_section', [ 'label_for' => 'gnce_enable_logging' ] );
 
@@ -212,6 +214,12 @@ class GNCE_Admin
         }
         echo '</select>';
         echo '<p class="description">' . __('How often to send low quota notifications for the same SIM card.', 'gnce-1nce-products') . '</p>';
+    }
+
+    public function gnce_render_notification_limit_field() {
+        $value = get_option( 'gnce_notification_limit', 3 );
+        echo '<input type="number" id="gnce_notification_limit" name="gnce_notification_limit" value="' . esc_attr( $value ) . '" min="1" class="small-text">';
+        echo '<p class="description">' . __( 'Maximum number of notifications to send for a SIM card when threshold is breached.', 'gnce-1nce-products' ) . '</p>';
     }
 
     public function gnce_render_quota_verification_field()

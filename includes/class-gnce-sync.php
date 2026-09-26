@@ -121,12 +121,19 @@ class GNCE_Sync
             $data_quota = $this->api->gnce_get_sim_data_quota($row['iccid']);
             $sms_quota = $this->api->gnce_get_sim_sms_quota($row['iccid']);
 
+	        $quota_mb  = $data_quota['remainingVolume'] ?? $data_quota['volume'] ?? $data_quota['remaining_volume'] ?? 0;
+	        $quota_sms = $sms_quota['remainingVolume'] ?? $sms_quota['volume'] ?? $sms_quota['remaining_sms'] ?? 0;
+
             $update_data = [
-                'quotaMB' => $data_quota['remainingVolume'] ?? $data_quota['volume'] ?? $data_quota['remaining_volume'] ?? 0,
-                'quotaSMS' => $sms_quota['remainingVolume'] ?? $sms_quota['volume'] ?? $sms_quota['remaining_sms'] ?? 0,
+	            'quotaMB'  => $quota_mb,
+	            'quotaSMS' => $quota_sms,
                 'lastQuotaUpdated' => current_time('mysql'),
                 'error' => ''
             ];
+
+	        if ( $quota_mb > $row['thresholdMB'] || $quota_sms > $row['thresholdSMS'] ) {
+		        $update_data['countNotificationSent'] = 0;
+	        }
 
             $this->db->update_iccid($id, $update_data);
 

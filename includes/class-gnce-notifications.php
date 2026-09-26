@@ -49,7 +49,12 @@ class GNCE_Notifications
         }
 
         if ($success) {
-            $this->db->update_iccid($id, ['lastNotificationSent' => current_time('mysql'), 'error' => '']);
+	        $count = isset( $row['countNotificationSent'] ) ? intval( $row['countNotificationSent'] ) + 1 : 1;
+	        $this->db->update_iccid( $id, [
+		        'lastNotificationSent'  => current_time( 'mysql' ),
+		        'countNotificationSent' => $count,
+		        'error'                 => ''
+	        ] );
         } else {
             $this->db->update_iccid($id, ['error' => substr($error_msg, 0, 50)]);
         }
@@ -57,6 +62,11 @@ class GNCE_Notifications
 
     private function gnce_can_send_notification($row)
     {
+	    $limit = intval( get_option( 'gnce_notification_limit', 3 ) );
+	    if ( $limit > 0 && isset( $row['countNotificationSent'] ) && intval( $row['countNotificationSent'] ) >= $limit ) {
+		    return false;
+	    }
+
         $frequency = get_option('gnce_notification_frequency', 'daily');
         if ($frequency === 'never') return false;
 

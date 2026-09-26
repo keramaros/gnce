@@ -31,6 +31,7 @@ class GNCE_DB
             thresholdSMS BIGINT(20) DEFAULT 50,
             lastQuotaUpdated DATETIME DEFAULT NULL,
             lastNotificationSent DATETIME DEFAULT NULL,
+            countNotificationSent INT(11) DEFAULT 0,
             notifyBySMS TINYINT(1) DEFAULT 1,
             notifyByEmail TINYINT(1) DEFAULT 1,
             error VARCHAR(50) DEFAULT '',

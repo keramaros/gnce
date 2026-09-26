@@ -54,6 +54,9 @@ function gnce_plugin_activation()
     if (get_option('gnce_sms_template') === false) {
         update_option('gnce_sms_template', __('1NCE Alert: ICCID {iccid} quota low. Data: {quotaMB} MB, SMS: {quotaSMS}.', 'gnce-1nce-products'));
     }
+	if ( get_option( 'gnce_notification_limit' ) === false ) {
+		update_option( 'gnce_notification_limit', 3 );
+	}
 }
 
 // Plugin Deactivation
