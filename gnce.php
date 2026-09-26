@@ -6,6 +6,8 @@ Description: 1NCE ICCID management and WooCommerce integration.
 Version: 2.0
 Author: Keramaros Antonios
 Author URI: https://keramaros.gr
+License: GPL-2.0+
+License URI: http://www.gnu.org/licenses/gpl-2.0.txt
 Text Domain: gnce-1nce-products
 Domain Path: /languages
 */
