@@ -53,7 +53,7 @@ A WordPress & WooCommerce plugin for managing 1NCE IoT SIM cards, monitoring dat
 
 1. Clone or extract the plugin files into your WordPress plugins directory:
    ```bash
-   wp-content/plugins/1nce.geoshop/
+   wp-content/plugins/gnce/
    ```
 2. In the WordPress Admin dashboard, go to **Plugins > Installed Plugins**.
 3. Locate **1NCE management** and click **Activate**.
@@ -116,7 +116,7 @@ This renders a search interface where customers can look up their ICCID to check
 
 ## License
 
-This plugin is proprietary / GPL compatible. See plugin header for details.
+This plugin is open-source software licensed under the [GNU General Public License v2.0 or later](LICENSE).
 
 ## Author
 
