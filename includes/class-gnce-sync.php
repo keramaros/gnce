@@ -124,6 +124,9 @@ class GNCE_Sync
 	        $quota_mb  = $data_quota['remainingVolume'] ?? $data_quota['volume'] ?? $data_quota['remaining_volume'] ?? 0;
 	        $quota_sms = $sms_quota['remainingVolume'] ?? $sms_quota['volume'] ?? $sms_quota['remaining_sms'] ?? 0;
 
+	        $effective_threshold_mb  = ( ! empty( $row['enableThresholdMB'] ) && isset( $row['thresholdMB'] ) ) ? intval( $row['thresholdMB'] ) : intval( get_option( 'gnce_threshold_mb', 250 ) );
+	        $effective_threshold_sms = ( ! empty( $row['enableThresholdSMS'] ) && isset( $row['thresholdSMS'] ) ) ? intval( $row['thresholdSMS'] ) : intval( get_option( 'gnce_threshold_sms', 50 ) );
+
             $update_data = [
 	            'quotaMB'  => $quota_mb,
 	            'quotaSMS' => $quota_sms,
@@ -131,7 +134,7 @@ class GNCE_Sync
                 'error' => ''
             ];
 
-	        if ( $quota_mb > $row['thresholdMB'] || $quota_sms > $row['thresholdSMS'] ) {
+	        if ( $quota_mb > $effective_threshold_mb || $quota_sms > $effective_threshold_sms ) {
 		        $update_data['countNotificationSent'] = 0;
 	        }
 

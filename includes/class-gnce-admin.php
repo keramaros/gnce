@@ -101,6 +101,8 @@ class GNCE_Admin
         register_setting('gnce_settings_group', 'gnce_once_api_payment_method', 'sanitize_text_field');
         register_setting('gnce_settings_group', 'gnce_notification_frequency', 'sanitize_text_field');
         register_setting( 'gnce_settings_group', 'gnce_notification_limit', 'absint' );
+        register_setting( 'gnce_settings_group', 'gnce_threshold_mb', 'absint' );
+        register_setting( 'gnce_settings_group', 'gnce_threshold_sms', 'absint' );
         register_setting('gnce_settings_group', 'gnce_api_sync_interval', 'sanitize_text_field');
         register_setting('gnce_settings_group', 'gnce_email_template_subject', 'sanitize_text_field');
         register_setting('gnce_settings_group', 'gnce_email_template_body', 'wp_kses_post');
@@ -115,6 +117,8 @@ class GNCE_Admin
 
         add_settings_section('gnce_sync_section', __('Sync & Notifications', 'gnce-1nce-products'), [$this, 'gnce_sync_section_callback'], 'gnce-settings');
         add_settings_field('gnce_api_sync_interval', __('API Sync Interval', 'gnce-1nce-products'), [$this, 'gnce_render_sync_interval_field'], 'gnce-settings', 'gnce_sync_section', ['label_for' => 'gnce_api_sync_interval']);
+        add_settings_field( 'gnce_threshold_mb', __( 'Threshold (MB)', 'gnce-1nce-products' ), [ $this, 'gnce_render_threshold_mb_field' ], 'gnce-settings', 'gnce_sync_section', [ 'label_for' => 'gnce_threshold_mb' ] );
+        add_settings_field( 'gnce_threshold_sms', __( 'Threshold (SMS)', 'gnce-1nce-products' ), [ $this, 'gnce_render_threshold_sms_field' ], 'gnce-settings', 'gnce_sync_section', [ 'label_for' => 'gnce_threshold_sms' ] );
         add_settings_field('gnce_notification_frequency', __('Notification Frequency', 'gnce-1nce-products'), [$this, 'gnce_render_notification_frequency_field'], 'gnce-settings', 'gnce_sync_section', ['label_for' => 'gnce_notification_frequency']);
         add_settings_field( 'gnce_notification_limit', __( 'Notification Limit', 'gnce-1nce-products' ), [ $this, 'gnce_render_notification_limit_field' ], 'gnce-settings', 'gnce_sync_section', [ 'label_for' => 'gnce_notification_limit' ] );
         add_settings_field('gnce_quota_verification_interval', __('Quota Verification Interval', 'gnce-1nce-products'), [$this, 'gnce_render_quota_verification_field'], 'gnce-settings', 'gnce_sync_section', ['label_for' => 'gnce_quota_verification_interval']);
@@ -197,6 +201,18 @@ class GNCE_Admin
         }
         echo '</select>';
         echo '<p class="description">' . __('How often to sync SIM card data with the 1NCE API.', 'gnce-1nce-products') . '</p>';
+    }
+
+    public function gnce_render_threshold_mb_field() {
+        $value = get_option( 'gnce_threshold_mb', 250 );
+        echo '<input type="number" id="gnce_threshold_mb" name="gnce_threshold_mb" value="' . esc_attr( $value ) . '" min="0" class="small-text">';
+        echo '<p class="description">' . __( 'Global default data threshold in MB. Used during sync unless overridden per entry.', 'gnce-1nce-products' ) . '</p>';
+    }
+
+    public function gnce_render_threshold_sms_field() {
+        $value = get_option( 'gnce_threshold_sms', 50 );
+        echo '<input type="number" id="gnce_threshold_sms" name="gnce_threshold_sms" value="' . esc_attr( $value ) . '" min="0" class="small-text">';
+        echo '<p class="description">' . __( 'Global default SMS threshold count. Used during sync unless overridden per entry.', 'gnce-1nce-products' ) . '</p>';
     }
 
     public function gnce_render_notification_frequency_field()
@@ -395,7 +411,7 @@ class GNCE_Admin
                 if ( isset( $_REQUEST['bulk_threshold_mb_value'] ) && is_numeric( $_REQUEST['bulk_threshold_mb_value'] ) ) {
                     $threshold_mb = absint( $_REQUEST['bulk_threshold_mb_value'] );
                     foreach ( $ids as $bulk_id ) {
-                        $this->db->update_iccid( $bulk_id, [ 'thresholdMB' => $threshold_mb ] );
+                        $this->db->update_iccid( $bulk_id, [ 'thresholdMB' => $threshold_mb, 'enableThresholdMB' => 1 ] );
                     }
                     echo '<div class="updated notice is-dismissible"><p>' . sprintf( __( 'Threshold (MB) updated to %d for %d ICCIDs.', 'gnce-1nce-products' ), $threshold_mb, count( $ids ) ) . '</p></div>';
                 } else {
@@ -408,7 +424,7 @@ class GNCE_Admin
                 if ( isset( $_REQUEST['bulk_threshold_sms_value'] ) && is_numeric( $_REQUEST['bulk_threshold_sms_value'] ) ) {
                     $threshold_sms = absint( $_REQUEST['bulk_threshold_sms_value'] );
                     foreach ( $ids as $bulk_id ) {
-                        $this->db->update_iccid( $bulk_id, [ 'thresholdSMS' => $threshold_sms ] );
+                        $this->db->update_iccid( $bulk_id, [ 'thresholdSMS' => $threshold_sms, 'enableThresholdSMS' => 1 ] );
                     }
                     echo '<div class="updated notice is-dismissible"><p>' . sprintf( __( 'Threshold (SMS) updated to %d for %d ICCIDs.', 'gnce-1nce-products' ), $threshold_sms, count( $ids ) ) . '</p></div>';
                 } else {
@@ -463,6 +479,8 @@ class GNCE_Admin
                     'email' => sanitize_email($_POST['email']),
                     'thresholdMB' => absint($_POST['thresholdMB']),
                     'thresholdSMS' => absint($_POST['thresholdSMS']),
+                    'enableThresholdMB'  => isset( $_POST['enableThresholdMB'] ) ? 1 : 0,
+                    'enableThresholdSMS' => isset( $_POST['enableThresholdSMS'] ) ? 1 : 0,
                     'notifyBySMS' => isset($_POST['notifyBySMS']) ? 1 : 0,
                     'notifyByEmail' => isset($_POST['notifyByEmail']) ? 1 : 0,
             ];
@@ -500,9 +518,17 @@ class GNCE_Admin
             }
         }
 
+        $global_threshold_mb  = get_option( 'gnce_threshold_mb', 250 );
+        $global_threshold_sms = get_option( 'gnce_threshold_sms', 50 );
+
         $item = $id ? $this->db->get_iccid($id) : [
                 'iccid' => '', 'name' => '', 'phone' => '', 'email' => '',
-                'thresholdMB' => 250, 'thresholdSMS' => 50, 'notifyBySMS' => 1, 'notifyByEmail' => 1
+                'thresholdMB'        => $global_threshold_mb,
+                'thresholdSMS'       => $global_threshold_sms,
+                'enableThresholdMB'  => 0,
+                'enableThresholdSMS' => 0,
+                'notifyBySMS'        => 1,
+                'notifyByEmail'      => 1
         ];
 
         if (!$item && $id) {
@@ -558,15 +584,17 @@ class GNCE_Admin
                                     <tr>
                                         <th><label for="thresholdMB"><?php _e('Threshold (MB)', 'gnce-1nce-products'); ?></label></th>
                                         <td>
-                                            <input name="thresholdMB" id="thresholdMB" type="number" value="<?php echo esc_attr($item['thresholdMB']); ?>" class="small-text">
-                                            <p class="description"><?php _e('Notify when data quota falls below this value (in MB).', 'gnce-1nce-products'); ?></p>
+                                            <label><input name="enableThresholdMB" type="checkbox" value="1" <?php checked( ! empty( $item['enableThresholdMB'] ), 1 ); ?>> <?php _e( 'Custom threshold', 'gnce-1nce-products' ); ?></label>
+                                            <input name="thresholdMB" id="thresholdMB" type="number" value="<?php echo esc_attr( $item['thresholdMB'] ?? $global_threshold_mb ); ?>" class="small-text">
+                                            <p class="description"><?php printf( __( 'Enable to override the global threshold (%d MB). Notify when data quota falls below this value (in MB).', 'gnce-1nce-products' ), $global_threshold_mb ); ?></p>
                                         </td>
                                     </tr>
                                     <tr>
                                         <th><label for="thresholdSMS"><?php _e('Threshold (SMS)', 'gnce-1nce-products'); ?></label></th>
                                         <td>
-                                            <input name="thresholdSMS" id="thresholdSMS" type="number" value="<?php echo esc_attr($item['thresholdSMS']); ?>" class="small-text">
-                                            <p class="description"><?php _e('Notify when SMS quota falls below this value.', 'gnce-1nce-products'); ?></p>
+                                            <label><input name="enableThresholdSMS" type="checkbox" value="1" <?php checked( ! empty( $item['enableThresholdSMS'] ), 1 ); ?>> <?php _e( 'Custom threshold', 'gnce-1nce-products' ); ?></label>
+                                            <input name="thresholdSMS" id="thresholdSMS" type="number" value="<?php echo esc_attr( $item['thresholdSMS'] ?? $global_threshold_sms ); ?>" class="small-text">
+                                            <p class="description"><?php printf( __( 'Enable to override the global threshold (%d SMS). Notify when SMS quota falls below this value.', 'gnce-1nce-products' ), $global_threshold_sms ); ?></p>
                                         </td>
                                     </tr>
                                     <tr>

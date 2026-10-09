@@ -18,8 +18,11 @@ class GNCE_Notifications
         $row = $this->db->get_iccid($id);
         if (!$row) return;
 
+	    $effective_threshold_mb  = ( ! empty( $row['enableThresholdMB'] ) && isset( $row['thresholdMB'] ) ) ? intval( $row['thresholdMB'] ) : intval( get_option( 'gnce_threshold_mb', 250 ) );
+	    $effective_threshold_sms = ( ! empty( $row['enableThresholdSMS'] ) && isset( $row['thresholdSMS'] ) ) ? intval( $row['thresholdSMS'] ) : intval( get_option( 'gnce_threshold_sms', 50 ) );
+
         $threshold_breached = false;
-        if ($row['quotaMB'] < $row['thresholdMB'] || $row['quotaSMS'] < $row['thresholdSMS']) {
+	    if ( $row['quotaMB'] < $effective_threshold_mb || $row['quotaSMS'] < $effective_threshold_sms ) {
             $threshold_breached = true;
         }
 

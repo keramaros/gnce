@@ -29,6 +29,8 @@ class GNCE_DB
             quotaSMS BIGINT(20) DEFAULT 0,
             thresholdMB BIGINT(20) DEFAULT 250,
             thresholdSMS BIGINT(20) DEFAULT 50,
+            enableThresholdMB TINYINT(1) DEFAULT 0,
+            enableThresholdSMS TINYINT(1) DEFAULT 0,
             lastQuotaUpdated DATETIME DEFAULT NULL,
             lastNotificationSent DATETIME DEFAULT NULL,
             countNotificationSent INT(11) DEFAULT 0,

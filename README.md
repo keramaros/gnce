@@ -73,6 +73,8 @@ Once activated, navigate to the **1NCE > Settings** menu in your WordPress Admin
 ### 2. Sync & Notifications
 
 - **API Sync Interval**: Frequency for syncing SIM cards via background cron (Hourly, Twice Daily, Daily, Never).
+- **Threshold (MB)**: Global default remaining data limit (in MB) below which low quota notifications are triggered during sync.
+- **Threshold (SMS)**: Global default remaining SMS count limit below which low quota notifications are triggered during sync.
 - **Notification Frequency**: How often to send threshold alerts for the same SIM card (Daily, Every 3 Days, Weekly, Never).
 - **Notification Limit**: Maximum number of notifications to send per SIM card when a threshold is breached.
 - **Quota Verification Interval**: Delay after a successful order to verify updated quotas from 1NCE (1 Hour, 2 Hours, 4 Hours, Never).
@@ -92,7 +94,7 @@ Once activated, navigate to the **1NCE > Settings** menu in your WordPress Admin
 ### 1. Managing ICCIDs
 
 - Navigate to **1NCE > ICCIDs** to view all saved SIM cards with current data/SMS quotas and sync statuses.
-- Click **Add New** (or go to **1NCE > Add ICCID**) to register a new SIM card with custom threshold limits and notification preferences.
+- Click **Add New** (or go to **1NCE > Add ICCID**) to register a new SIM card. You can configure individual notification preferences and optionally enable custom Threshold (MB) / Threshold (SMS) overrides (disabled by default, falling back to the global threshold settings).
 - Perform single or bulk actions (Sync, Delete, Set Threshold MB/SMS, Enable/Disable Notify by Email/SMS).
 
 ### 2. Setting Up WooCommerce Renewal Products
