@@ -603,6 +603,14 @@ class GNCE_Admin
                                                 <div class="misc-pub-section">
                                                     <span class="dashicons dashicons-email"></span> <?php _e('Last Notification:', 'gnce-1nce-products'); ?><br> <b><?php echo $item['lastNotificationSent'] ? mysql2date(get_option('date_format') . ' ' . get_option('time_format'), $item['lastNotificationSent']) : __('Never', 'gnce-1nce-products'); ?></b>
                                                 </div>
+                                                <div class="misc-pub-section">
+                                                    <span class="dashicons dashicons-megaphone"></span> <?php _e( 'Notifications Sent:', 'gnce-1nce-products' ); ?><br> <b><?php echo isset( $item['countNotificationSent'] ) ? intval( $item['countNotificationSent'] ) : 0; ?></b>
+                                                </div>
+                                                <?php if ( ! empty( $item['error'] ) ) : ?>
+                                                    <div class="misc-pub-section" style="color: #d63638;">
+                                                        <span class="dashicons dashicons-warning" style="color: #d63638;"></span> <?php _e( 'Status/Error:', 'gnce-1nce-products' ); ?><br> <b><?php echo esc_html( $item['error'] ); ?></b>
+                                                    </div>
+                                                <?php endif; ?>
                                             <?php endif; ?>
                                         </div>
                                     </div>
