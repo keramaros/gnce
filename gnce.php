@@ -19,6 +19,7 @@ if (!defined('ABSPATH')) {
 // Define Constants
 define('GNCE_PATH', plugin_dir_path(__FILE__));
 define('GNCE_URL', plugin_dir_url(__FILE__));
+define( 'GNCE_DB_VERSION', '2.0' );
 const GNCE_TRANSIENT_SIM_ICCID = 'gnce_transient_sim_iccid';
 const GNCE_TRANSIENT_SIM_ICCID_LIFETIME = MINUTE_IN_SECONDS;
 
@@ -42,6 +43,7 @@ function gnce_plugin_activation()
 {
     $db = new GNCE_DB();
     $db->create_table();
+	update_option( 'gnce_db_version', GNCE_DB_VERSION );
 
     $sync = new GNCE_Sync();
     $sync->gnce_setup_cron();
@@ -58,6 +60,16 @@ function gnce_plugin_activation()
     }
 	if ( get_option( 'gnce_notification_limit' ) === false ) {
 		update_option( 'gnce_notification_limit', 3 );
+	}
+}
+
+// Check for DB updates on plugin load
+add_action( 'plugins_loaded', 'gnce_check_db_update' );
+function gnce_check_db_update() {
+	if ( get_option( 'gnce_db_version' ) !== GNCE_DB_VERSION ) {
+		$db = new GNCE_DB();
+		$db->create_table();
+		update_option( 'gnce_db_version', GNCE_DB_VERSION );
 	}
 }
 
