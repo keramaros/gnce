@@ -93,7 +93,7 @@ Once activated, navigate to the **1NCE > Settings** menu in your WordPress Admin
 
 - Navigate to **1NCE > ICCIDs** to view all saved SIM cards with current data/SMS quotas and sync statuses.
 - Click **Add New** (or go to **1NCE > Add ICCID**) to register a new SIM card with custom threshold limits and notification preferences.
-- Perform single or bulk actions (Sync, Delete).
+- Perform single or bulk actions (Sync, Delete, Set Threshold MB/SMS, Enable/Disable Notify by Email/SMS).
 
 ### 2. Setting Up WooCommerce Renewal Products
 

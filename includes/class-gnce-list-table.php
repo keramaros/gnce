@@ -41,6 +41,12 @@ class GNCE_List_Table extends WP_List_Table
         return [
             'bulk-delete' => __('Delete', 'gnce-1nce-products'),
             'bulk-sync' => __('Sync Now', 'gnce-1nce-products'),
+            'bulk-set-threshold-mb'     => __( 'Set Threshold (MB)', 'gnce-1nce-products' ),
+            'bulk-set-threshold-sms'    => __( 'Set Threshold (SMS)', 'gnce-1nce-products' ),
+            'bulk-enable-notify-email'  => __( 'Enable Notify by Email', 'gnce-1nce-products' ),
+            'bulk-disable-notify-email' => __( 'Disable Notify by Email', 'gnce-1nce-products' ),
+            'bulk-enable-notify-sms'    => __( 'Enable Notify by SMS', 'gnce-1nce-products' ),
+            'bulk-disable-notify-sms'   => __( 'Disable Notify by SMS', 'gnce-1nce-products' ),
         ];
     }
 

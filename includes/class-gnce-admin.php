@@ -274,13 +274,61 @@ class GNCE_Admin
         <div class="wrap">
             <h1 class="wp-heading-inline"><?php _e('ICCIDs', 'gnce-1nce-products'); ?></h1>
             <a href="<?php echo esc_url(admin_url('admin.php?page=gnce-add-iccid')); ?>" class="page-title-action"><?php _e('Add New', 'gnce-1nce-products'); ?></a>
-            <form method="get">
+            <form method="get" id="gnce-iccids-form">
                 <input type="hidden" name="page" value="gnce-iccids">
                 <?php
                 $list_table->search_box(__('Search ICCIDs', 'gnce-1nce-products'), 'iccid-search');
                 $list_table->display();
                 ?>
             </form>
+            <script>
+                document.addEventListener('DOMContentLoaded', function () {
+                    var form = document.getElementById('gnce-iccids-form');
+                    if (!form) return;
+
+                    form.addEventListener('submit', function (e) {
+                        var topAction = document.getElementById('bulk-action-selector-top');
+                        var bottomAction = document.getElementById('bulk-action-selector-bottom');
+                        var action = (topAction && topAction.value !== '-1') ? topAction.value : (bottomAction ? bottomAction.value : '-1');
+
+                        // Remove any previous dynamic inputs
+                        var oldMb = document.getElementById('bulk_threshold_mb_value_input');
+                        if (oldMb) oldMb.remove();
+                        var oldSms = document.getElementById('bulk_threshold_sms_value_input');
+                        if (oldSms) oldSms.remove();
+
+                        if (action === 'bulk-set-threshold-mb') {
+                            var checkedBoxes = form.querySelectorAll('input[name="iccid_id[]"]:checked');
+                            if (checkedBoxes.length === 0) return;
+                            var val = prompt("<?php echo esc_js( __( 'Enter new Threshold (MB) value:', 'gnce-1nce-products' ) ); ?>", "250");
+                            if (val === null) {
+                                e.preventDefault();
+                                return;
+                            }
+                            var input = document.createElement('input');
+                            input.type = 'hidden';
+                            input.name = 'bulk_threshold_mb_value';
+                            input.id = 'bulk_threshold_mb_value_input';
+                            input.value = val;
+                            form.appendChild(input);
+                        } else if (action === 'bulk-set-threshold-sms') {
+                            var checkedBoxes = form.querySelectorAll('input[name="iccid_id[]"]:checked');
+                            if (checkedBoxes.length === 0) return;
+                            var val = prompt("<?php echo esc_js( __( 'Enter new Threshold (SMS) value:', 'gnce-1nce-products' ) ); ?>", "50");
+                            if (val === null) {
+                                e.preventDefault();
+                                return;
+                            }
+                            var input = document.createElement('input');
+                            input.type = 'hidden';
+                            input.name = 'bulk_threshold_sms_value';
+                            input.id = 'bulk_threshold_sms_value_input';
+                            input.value = val;
+                            form.appendChild(input);
+                        }
+                    });
+                });
+            </script>
         </div>
         <?php
     }
@@ -340,6 +388,64 @@ class GNCE_Admin
                 if ($success_count < count($ids)) {
                     echo '<div class="error notice is-dismissible"><p>' . sprintf(__('%d ICCIDs failed to sync.', 'gnce-1nce-products'), count($ids) - $success_count) . '</p></div>';
                 }
+            }
+
+            if ( $bulk_action === 'bulk-set-threshold-mb' ) {
+                check_admin_referer( 'bulk-iccids' );
+                if ( isset( $_REQUEST['bulk_threshold_mb_value'] ) && is_numeric( $_REQUEST['bulk_threshold_mb_value'] ) ) {
+                    $threshold_mb = absint( $_REQUEST['bulk_threshold_mb_value'] );
+                    foreach ( $ids as $bulk_id ) {
+                        $this->db->update_iccid( $bulk_id, [ 'thresholdMB' => $threshold_mb ] );
+                    }
+                    echo '<div class="updated notice is-dismissible"><p>' . sprintf( __( 'Threshold (MB) updated to %d for %d ICCIDs.', 'gnce-1nce-products' ), $threshold_mb, count( $ids ) ) . '</p></div>';
+                } else {
+                    echo '<div class="error notice is-dismissible"><p>' . __( 'Invalid threshold value provided for Threshold (MB).', 'gnce-1nce-products' ) . '</p></div>';
+                }
+            }
+
+            if ( $bulk_action === 'bulk-set-threshold-sms' ) {
+                check_admin_referer( 'bulk-iccids' );
+                if ( isset( $_REQUEST['bulk_threshold_sms_value'] ) && is_numeric( $_REQUEST['bulk_threshold_sms_value'] ) ) {
+                    $threshold_sms = absint( $_REQUEST['bulk_threshold_sms_value'] );
+                    foreach ( $ids as $bulk_id ) {
+                        $this->db->update_iccid( $bulk_id, [ 'thresholdSMS' => $threshold_sms ] );
+                    }
+                    echo '<div class="updated notice is-dismissible"><p>' . sprintf( __( 'Threshold (SMS) updated to %d for %d ICCIDs.', 'gnce-1nce-products' ), $threshold_sms, count( $ids ) ) . '</p></div>';
+                } else {
+                    echo '<div class="error notice is-dismissible"><p>' . __( 'Invalid threshold value provided for Threshold (SMS).', 'gnce-1nce-products' ) . '</p></div>';
+                }
+            }
+
+            if ( $bulk_action === 'bulk-enable-notify-email' ) {
+                check_admin_referer( 'bulk-iccids' );
+                foreach ( $ids as $bulk_id ) {
+                    $this->db->update_iccid( $bulk_id, [ 'notifyByEmail' => 1 ] );
+                }
+                echo '<div class="updated notice is-dismissible"><p>' . sprintf( __( 'Notify by Email enabled for %d ICCIDs.', 'gnce-1nce-products' ), count( $ids ) ) . '</p></div>';
+            }
+
+            if ( $bulk_action === 'bulk-disable-notify-email' ) {
+                check_admin_referer( 'bulk-iccids' );
+                foreach ( $ids as $bulk_id ) {
+                    $this->db->update_iccid( $bulk_id, [ 'notifyByEmail' => 0 ] );
+                }
+                echo '<div class="updated notice is-dismissible"><p>' . sprintf( __( 'Notify by Email disabled for %d ICCIDs.', 'gnce-1nce-products' ), count( $ids ) ) . '</p></div>';
+            }
+
+            if ( $bulk_action === 'bulk-enable-notify-sms' ) {
+                check_admin_referer( 'bulk-iccids' );
+                foreach ( $ids as $bulk_id ) {
+                    $this->db->update_iccid( $bulk_id, [ 'notifyBySMS' => 1 ] );
+                }
+                echo '<div class="updated notice is-dismissible"><p>' . sprintf( __( 'Notify by SMS enabled for %d ICCIDs.', 'gnce-1nce-products' ), count( $ids ) ) . '</p></div>';
+            }
+
+            if ( $bulk_action === 'bulk-disable-notify-sms' ) {
+                check_admin_referer( 'bulk-iccids' );
+                foreach ( $ids as $bulk_id ) {
+                    $this->db->update_iccid( $bulk_id, [ 'notifyBySMS' => 0 ] );
+                }
+                echo '<div class="updated notice is-dismissible"><p>' . sprintf( __( 'Notify by SMS disabled for %d ICCIDs.', 'gnce-1nce-products' ), count( $ids ) ) . '</p></div>';
             }
         }
     }
