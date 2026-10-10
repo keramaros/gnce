@@ -21,21 +21,36 @@ class GNCE_Notifications
 	    $effective_threshold_mb  = ( ! empty( $row['enableThresholdMB'] ) && isset( $row['thresholdMB'] ) ) ? intval( $row['thresholdMB'] ) : intval( get_option( 'gnce_threshold_mb', 250 ) );
 	    $effective_threshold_sms = ( ! empty( $row['enableThresholdSMS'] ) && isset( $row['thresholdSMS'] ) ) ? intval( $row['thresholdSMS'] ) : intval( get_option( 'gnce_threshold_sms', 50 ) );
 
-        $threshold_breached = false;
-	    if ( $row['quotaMB'] < $effective_threshold_mb || $row['quotaSMS'] < $effective_threshold_sms ) {
-            $threshold_breached = true;
+	    $reasons = [];
+	    if ( isset( $row['quotaMB'] ) && $row['quotaMB'] < $effective_threshold_mb ) {
+		    $reasons[] = sprintf( 'Quota MB (%s MB) is below threshold (%s MB)', $row['quotaMB'], $effective_threshold_mb );
+	    }
+	    if ( isset( $row['quotaSMS'] ) && $row['quotaSMS'] < $effective_threshold_sms ) {
+		    $reasons[] = sprintf( 'Quota SMS (%s SMS) is below threshold (%s SMS)', $row['quotaSMS'], $effective_threshold_sms );
+	    }
+
+	    if ( empty( $reasons ) ) {
+		    gnce_log( sprintf( 'GNCE_Notifications: No notification sent for ID %s (ICCID: %s). Quota MB: %s MB (Threshold: %s MB), Quota SMS: %s SMS (Threshold: %s SMS). No thresholds breached.', $id, $row['iccid'] ?? '', $row['quotaMB'] ?? 'N/A', $effective_threshold_mb, $row['quotaSMS'] ?? 'N/A', $effective_threshold_sms ) );
+
+		    return;
         }
 
-        if (!$threshold_breached) return;
+	    $reason_str    = implode( '; ', $reasons );
 
-        if (!$this->gnce_can_send_notification($row)) return;
+	    if ( ! $this->gnce_can_send_notification( $row ) ) {
+		    gnce_log( sprintf( 'GNCE_Notifications: Notification skipped (frequency/limit restriction) for ID %s (ICCID: %s). Reason for breach: %s. Current Quota: MB=%s, SMS=%s. Thresholds: MB=%s, SMS=%s.', $id, $row['iccid'] ?? '', $reason_str, $row['quotaMB'] ?? 'N/A', $row['quotaSMS'] ?? 'N/A', $effective_threshold_mb, $effective_threshold_sms ) );
+
+		    return;
+	    }
 
         $success = true;
         $error_msg = '';
+	    $sent_channels = [];
 
         if ($row['notifyByEmail'] && !empty($row['email'])) {
             try {
                 $this->gnce_send_email($row);
+	            $sent_channels[] = 'Email (to: ' . $row['email'] . ')';
             } catch (Exception $e) {
                 $success = false;
                 $error_msg .= 'Email Error: ' . substr($e->getMessage(), 0, 20) . '; ';
@@ -45,11 +60,28 @@ class GNCE_Notifications
         if ($row['notifyBySMS'] && !empty($row['phone'])) {
             try {
                 $this->gnce_send_sms($row);
+	            $sent_channels[] = 'SMS (to: ' . $row['phone'] . ')';
             } catch (Exception $e) {
                 $success = false;
                 $error_msg .= 'SMS Error: ' . substr($e->getMessage(), 0, 20) . '; ';
             }
         }
+
+	    if ( ! empty( $sent_channels ) ) {
+		    gnce_log( sprintf(
+			    'GNCE_Notifications: Notification sent [%s] for ID %s (ICCID: %s). Why: %s. Quota MB: %s MB (Threshold: %s MB), Quota SMS: %s SMS (Threshold: %s SMS).',
+			    implode( ', ', $sent_channels ),
+			    $id,
+			    $row['iccid'] ?? '',
+			    $reason_str,
+			    $row['quotaMB'] ?? 'N/A',
+			    $effective_threshold_mb,
+			    $row['quotaSMS'] ?? 'N/A',
+			    $effective_threshold_sms
+		    ) );
+	    } elseif ( empty( $row['notifyByEmail'] ) && empty( $row['notifyBySMS'] ) ) {
+		    gnce_log( sprintf( 'GNCE_Notifications: Threshold breached but no notification channels enabled for ID %s (ICCID: %s). Reason: %s. Quota MB: %s MB (Threshold: %s MB), Quota SMS: %s SMS (Threshold: %s SMS).', $id, $row['iccid'] ?? '', $reason_str, $row['quotaMB'] ?? 'N/A', $effective_threshold_mb, $row['quotaSMS'] ?? 'N/A', $effective_threshold_sms ) );
+	    }
 
         if ($success) {
 	        $count = isset( $row['countNotificationSent'] ) ? intval( $row['countNotificationSent'] ) + 1 : 1;
@@ -60,6 +92,7 @@ class GNCE_Notifications
 	        ] );
         } else {
             $this->db->update_iccid($id, ['error' => substr($error_msg, 0, 50)]);
+	        gnce_log( sprintf( 'GNCE_Notifications: Notification error for ID %s: %s', $id, $error_msg ) );
         }
     }
 

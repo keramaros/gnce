@@ -144,9 +144,12 @@ class GNCE_Sync
             $notifier = new GNCE_Notifications();
             $notifier->gnce_check_and_notify($id);
 
+	        gnce_log( sprintf( 'GNCE_Sync::gnce_sync_single_row completed for ID: %s. Quota: %s MB, %s SMS.', $id, $quota_mb, $quota_sms ) );
+
             return true;
         } catch (Exception $e) {
             $this->db->update_iccid($id, ['error' => substr($e->getMessage(), 0, 50)]);
+	        gnce_log( sprintf( 'GNCE_Sync::gnce_sync_single_row error for ID %s: %s', $id, $e->getMessage() ) );
             return false;
         }
     }
