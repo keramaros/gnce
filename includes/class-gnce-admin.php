@@ -109,6 +109,8 @@ class GNCE_Admin
         register_setting('gnce_settings_group', 'gnce_sms_template', 'sanitize_textarea_field');
         register_setting('gnce_settings_group', 'gnce_quota_verification_interval', 'sanitize_text_field');
         register_setting( 'gnce_settings_group', 'gnce_enable_logging', 'sanitize_text_field' );
+        register_setting( 'gnce_settings_group', 'gnce_stop_all_emails', 'sanitize_text_field' );
+        register_setting( 'gnce_settings_group', 'gnce_stop_all_sms', 'sanitize_text_field' );
 
         add_settings_section('gnce_api_section', __('API Settings', 'gnce-1nce-products'), [$this, 'gnce_api_section_callback'], 'gnce-settings');
         add_settings_field('gnce_once_api_client_id', __('Client ID', 'gnce-1nce-products'), [$this, 'gnce_render_text_field'], 'gnce-settings', 'gnce_api_section', ['label_for' => 'gnce_once_api_client_id']);
@@ -122,6 +124,8 @@ class GNCE_Admin
         add_settings_field('gnce_notification_frequency', __('Notification Frequency', 'gnce-1nce-products'), [$this, 'gnce_render_notification_frequency_field'], 'gnce-settings', 'gnce_sync_section', ['label_for' => 'gnce_notification_frequency']);
         add_settings_field( 'gnce_notification_limit', __( 'Notification Limit', 'gnce-1nce-products' ), [ $this, 'gnce_render_notification_limit_field' ], 'gnce-settings', 'gnce_sync_section', [ 'label_for' => 'gnce_notification_limit' ] );
         add_settings_field('gnce_quota_verification_interval', __('Quota Verification Interval', 'gnce-1nce-products'), [$this, 'gnce_render_quota_verification_field'], 'gnce-settings', 'gnce_sync_section', ['label_for' => 'gnce_quota_verification_interval']);
+        add_settings_field( 'gnce_stop_all_emails', __( 'Stop sending all emails', 'gnce-1nce-products' ), [ $this, 'gnce_render_stop_emails_field' ], 'gnce-settings', 'gnce_sync_section', [ 'label_for' => 'gnce_stop_all_emails' ] );
+        add_settings_field( 'gnce_stop_all_sms', __( 'Stop sending all SMS', 'gnce-1nce-products' ), [ $this, 'gnce_render_stop_sms_field' ], 'gnce-settings', 'gnce_sync_section', [ 'label_for' => 'gnce_stop_all_sms' ] );
         add_settings_field( 'gnce_enable_logging', __( 'Enable Debug Logging', 'gnce-1nce-products' ), [ $this, 'gnce_render_checkbox_field' ], 'gnce-settings', 'gnce_sync_section', [ 'label_for' => 'gnce_enable_logging' ] );
 
         add_settings_section('gnce_templates_section', __('Templates', 'gnce-1nce-products'), [$this, 'gnce_templates_section_callback'], 'gnce-settings');
@@ -253,6 +257,16 @@ class GNCE_Admin
         }
         echo '</select>';
         echo '<p class="description">' . __('Verification delay after a successful renewal order to confirm the new quota.', 'gnce-1nce-products') . '</p>';
+    }
+
+    public function gnce_render_stop_emails_field() {
+        $value = get_option( 'gnce_stop_all_emails', '0' );
+        echo '<label><input type="checkbox" id="gnce_stop_all_emails" name="gnce_stop_all_emails" value="1" ' . checked( '1', $value, false ) . '> ' . __( 'Block wp_mail from executing when sending email notifications.', 'gnce-1nce-products' ) . '</label>';
+    }
+
+    public function gnce_render_stop_sms_field() {
+        $value = get_option( 'gnce_stop_all_sms', '0' );
+        echo '<label><input type="checkbox" id="gnce_stop_all_sms" name="gnce_stop_all_sms" value="1" ' . checked( '1', $value, false ) . '> ' . __( 'Block dummy SMS API call from executing when sending SMS notifications.', 'gnce-1nce-products' ) . '</label>';
     }
 
     public function gnce_render_checkbox_field( $args ) {

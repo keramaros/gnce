@@ -135,6 +135,11 @@ class GNCE_Notifications
 
         $body = nl2br($body);
         $headers = array('Content-Type: text/html; charset=UTF-8');
+
+	    if ( get_option( 'gnce_stop_all_emails', '0' ) == '1' ) {
+		    return;
+	    }
+
         $sent = wp_mail($row['email'], $subject, $body, $headers);
         if (!$sent) {
             throw new Exception(__('wp_mail failed', 'gnce-1nce-products'));
@@ -148,6 +153,10 @@ class GNCE_Notifications
         $message = str_replace('{name}', $row['name'], $message);
         $message = str_replace('{quotaMB}', $row['quotaMB'], $message);
         $message = str_replace('{quotaSMS}', $row['quotaSMS'], $message);
+
+	    if ( get_option( 'gnce_stop_all_sms', '0' ) == '1' ) {
+		    return;
+	    }
 
         // Dummy SMS API Call Placeholder
         $this->gnce_dummy_sms_api($row['phone'], $message);
